@@ -115,7 +115,7 @@ function fetchHTML(url, domCookies, browserCookies, cmpInfo) {
       const doc = parser.parseFromString(response.html, "text/html");
       const text = doc.body.innerText;
 
-      renderResult(url, text, domCookies, browserCookies, cmpInfo);
+      buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo);
     }
   );
 }
@@ -142,7 +142,7 @@ function fetchPDF(url, domCookies, browserCookies, cmpInfo) {
           text += content.items.map(item => item.str).join(" ") + "\n\n";
         }
 
-        renderResult(url, text, domCookies, browserCookies, cmpInfo);
+        buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo);
       } catch (err) {
         output.innerHTML = `<li>PDF parse error: ${err.message}</li>`;
       }
@@ -181,22 +181,56 @@ async function getCMPInfo(tabId) {
   return result;
 }
 
-// ================= RENDER RESULT =================
-function renderResult(url, text, domCookies, browserCookies, cmpInfo) {
+// ================= BUILD JSON + RENDER =================
+function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
+
+  // 🔹 Policy JSON (for summarizer)
+  const policyJSON = {
+    url: url,
+    policy_text: text
+  };
+
+  // 🔹 Cookies JSON (for analyzer)
+  const cookiesJSON = {
+    url: url,
+    cmp: cmpInfo,
+    cookies: {
+      dom: domCookies,
+      browser: browserCookies.map(c => ({
+        name: c.name,
+        domain: c.domain,
+        secure: c.secure,
+        httpOnly: c.httpOnly,
+        sameSite: c.sameSite,
+        expirationDate: c.expirationDate || null
+      }))
+    }
+  };
+
+  // Store globally (useful later)
+  window.__POLICY_JSON__ = policyJSON;
+  window.__COOKIES_JSON__ = cookiesJSON;
+
+  function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json"
+  });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+  // 🔹 Render for testing
   output.innerHTML = `
-    <h3>URL</h3>
-    <pre>${url}</pre>
+    <h3>Policy JSON (for Summarizer)</h3>
+    <pre>${JSON.stringify(policyJSON, null, 2).slice(0, 3000)}</pre>
 
-    <h3>CMP Info</h3>
-    <pre>${JSON.stringify(cmpInfo, null, 2)}</pre>
-
-    <h3>DOM Cookies (${domCookies.length})</h3>
-    <pre>${JSON.stringify(domCookies, null, 2)}</pre>
-
-    <h3>Browser Cookies (${browserCookies.length})</h3>
-    <pre>${JSON.stringify(browserCookies, null, 2)}</pre>
-
-    <h3>Policy Text (Preview)</h3>
-    <pre>${text.slice(0, 2000)}</pre>
+    <h3>Cookies JSON (for Analyzer)</h3>
+    <pre>${JSON.stringify(cookiesJSON, null, 2)}</pre>
   `;
 }
