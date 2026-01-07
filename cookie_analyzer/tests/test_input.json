@@ -1,0 +1,26 @@
+{
+  "site_domain": "example.com",
+  "cookies": [
+    {
+      "name": "_ga",
+      "domain": "google.com",
+      "expiry_days": 730,
+      "secure": true,
+      "sameSite": "None"
+    }
+  ],
+  "consent_ui": {
+    "accept_clicks": 1,
+    "reject_clicks": 3,
+    "manage_preferences_visible": false,
+    "consent_required_to_proceed": true,
+    "categories": [
+      {
+        "label": "Analytics",
+        "description": "Used to improve your experience",
+        "prechecked": true
+      }
+    ]
+  },
+  "cmp_detected": "OneTrust"
+}
