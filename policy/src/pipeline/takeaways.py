@@ -11,7 +11,7 @@ def build_takeaways(signals: Signals, data_collected: list[str]):
     if signals["mentions_third_party_sharing"]:
         takeaways.append("Mentions sharing data with third parties (such as partners, advertisers, or service providers).")
     else:
-        takeaways.append("Does not clearly mention third-party sharing (may still occur—verify details).")
+        takeaways.append("Third-party sharing is not clearly stated in the policy.")
 
     if signals["mentions_tracking"]:
         takeaways.append("Mentions tracking/analytics/cookies for measurement or advertising.")

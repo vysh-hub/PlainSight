@@ -1,26 +1,25 @@
 {
-  "url": "https://sampleplatform.com/terms-of-service",
-  "title": "Terms of Service",
+  "url": "https://openai.com/policies/privacy-policy/california-privacy-rights-reporting/",
+  "title": "",
   "is_policy_page": true,
-  "summary_simple": "These Terms of Service explain how you can use SamplePlatform. You must be at least 13 years old and keep your account information safe. The platform can suspend or terminate your access if you break the rules.",
+  "summary_simple": "This privacy policy explains how we collect, use, and protect your personal information. It details the types of data we gather and how we share it with third parties. You have rights regarding your data, including access and deletion options.",
   "key_takeaways": [
-    "You must agree to the Terms to use the platform.",
-    "Users must be at least 13 years old.",
-    "You are responsible for your account security.",
-    "Misusing the platform can lead to suspension.",
-    "All content is owned by SamplePlatform or its licensors.",
-    "The Terms can change, and continued use means you accept the changes."
+    "Personal information is collected from users.",
+    "Data may be shared with third parties.",
+    "Users can access their data.",
+    "Users can request deletion of their data.",
+    "Data protection measures are in place.",
+    "Policy may be updated periodically."
   ],
   "risks": [
-    "Account security risks if credentials are shared.",
-    "Possible suspension of access for rule violations.",
-    "Liability limitations may affect user claims."
+    "Data breaches could expose personal information.",
+    "Third-party sharing may lead to misuse of data."
   ],
   "red_flags": [
-    "Terms can change without direct notice.",
-    "Broad rights to terminate access at discretion."
+    "Vague language about data protection.",
+    "No clear opt-out options for data sharing."
   ],
   "policy_risk_score": 2,
   "risk_level": "Low",
-  "captured_at": "2026-01-07T11:05:00+05:30"
+  "captured_at": null
 }

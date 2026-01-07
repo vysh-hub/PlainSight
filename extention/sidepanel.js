@@ -181,13 +181,29 @@ async function getCMPInfo(tabId) {
   return result;
 }
 
+async function runPolicySummariser(policyJSON) {
+  const res = await fetch("http://localhost:8000/policy/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(policyJSON)
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Backend ${res.status}: ${txt}`);
+  }
+
+  return await res.json(); // this is your output.json
+}
+
 // ================= BUILD JSON + RENDER =================
-function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
+async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
 
   // 🔹 Policy JSON (for summarizer)
   const policyJSON = {
     url: url,
-    policy_text: text
+    raw_text: text,
+    captured_at: new Date().toISOString()
   };
 
   // 🔹 Cookies JSON (for analyzer)
@@ -207,30 +223,49 @@ function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
     }
   };
 
-  // Store globally (useful later)
-  window.__POLICY_JSON__ = policyJSON;
-  window.__COOKIES_JSON__ = cookiesJSON;
+  output.innerHTML = `<li>Sending policy text to summariser...</li>`;
 
-  function downloadJSON(data, filename) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json"
-  });
-  const url = URL.createObjectURL(blob);
+  let policyOut = null;
+  try {
+    policyOut = await runPolicySummariser(policyJSON);
+  } catch (e) {
+    policyOut = { error: String(e.message || e) };
+  }
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-
-  URL.revokeObjectURL(url);
-}
-
-  // 🔹 Render for testing
+  // Render for testing
   output.innerHTML = `
-    <h3>Policy JSON (for Summarizer)</h3>
-    <pre>${JSON.stringify(policyJSON, null, 2).slice(0, 3000)}</pre>
+    <h3>Policy OUTPUT (from Summariser)</h3>
+    <pre>${JSON.stringify(policyOut, null, 2).slice(0, 6000)}</pre>
 
     <h3>Cookies JSON (for Analyzer)</h3>
-    <pre>${JSON.stringify(cookiesJSON, null, 2)}</pre>
+    <pre>${JSON.stringify(cookiesJSON, null, 2).slice(0, 3000)}</pre>
   `;
 }
+
+//   // Store globally (useful later)
+//   window.__POLICY_JSON__ = policyJSON;
+//   window.__COOKIES_JSON__ = cookiesJSON;
+
+//   function downloadJSON(data, filename) {
+//   const blob = new Blob([JSON.stringify(data, null, 2)], {
+//     type: "application/json"
+//   });
+//   const url = URL.createObjectURL(blob);
+
+//   const a = document.createElement("a");
+//   a.href = url;
+//   a.download = filename;
+//   a.click();
+
+//   URL.revokeObjectURL(url);
+// }
+
+//   // 🔹 Render for testing
+//   output.innerHTML = `
+//     <h3>Policy JSON (for Summarizer)</h3>
+//     <pre>${JSON.stringify(policyJSON, null, 2).slice(0, 3000)}</pre>
+
+//     <h3>Cookies JSON (for Analyzer)</h3>
+//     <pre>${JSON.stringify(cookiesJSON, null, 2)}</pre>
+//   `;
+// }
