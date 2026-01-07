@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cookie-analyzer"
+version = "0.1.0"
+description = "Deterministic and semantic analysis engine for browser cookies and consent mechanisms"
+authors = [
+    { name="Reeva", email="your-email@example.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "requests",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
