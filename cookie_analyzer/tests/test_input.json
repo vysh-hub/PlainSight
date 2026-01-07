@@ -1,26 +1,288 @@
 {
-  "site_domain": "example.com",
-  "cookies": [
-    {
-      "name": "_ga",
-      "domain": "google.com",
-      "expiry_days": 730,
-      "secure": true,
-      "sameSite": "None"
+  "url": "https://www.bbc.com/pages/terms-of-use",
+  "cmp": {
+    "consentCookies": [],
+    "detected": {
+      "gpp": false,
+      "tcf": false,
+      "usp": false
+    },
+    "page": "www.bbc.com",
+    "providers": {
+      "cookiebot": false,
+      "didomi": false,
+      "onetrust": false,
+      "quantcast": false
     }
-  ],
-  "consent_ui": {
-    "accept_clicks": 1,
-    "reject_clicks": 3,
-    "manage_preferences_visible": false,
-    "consent_required_to_proceed": true,
-    "categories": [
+  },
+  "cookies": {
+    "dom": [
       {
-        "label": "Analytics",
-        "description": "Used to improve your experience",
-        "prechecked": true
+        "name": "optimizelyEndUserId",
+        "value": "oeu1767800397035r0.9145772795305479"
+      },
+      {
+        "name": "optimizelySession",
+        "value": "1767800397072"
+      },
+      {
+        "name": "ckns_policy",
+        "value": "111"
+      },
+      {
+        "name": "ckns_explicit",
+        "value": "0"
+      },
+      {
+        "name": "_sp_su",
+        "value": "false"
+      },
+      {
+        "name": "usnatUUID",
+        "value": "91d3ab56-1161-49e7-bfb9-c14a9003d568"
+      },
+      {
+        "name": "permutive-id",
+        "value": "d27af7f9-349f-4ef4-ab90-b6268ddfd0a4"
+      },
+      {
+        "name": "_cb",
+        "value": "D-UlJwB-57qlB6kvSG"
+      },
+      {
+        "name": "_chartbeat2",
+        "value": ".1767800402803.1767800402803.1.wwbAqCOI7aIC1R8jmDBTVU3Ya_oa.1"
+      },
+      {
+        "name": "_pprv",
+        "value": "eyJjb25zZW50Ijp7IjAiOnsibW9kZSI6Im9wdC1pbiJ9LCIxIjp7Im1vZGUiOiJvcHQtaW4ifSwiMiI6eyJtb2RlIjoib3B0LWluIn0sIjMiOnsibW9kZSI6Im9wdC1pbiJ9LCI0Ijp7Im1vZGUiOiJvcHQtaW4ifSwiNSI6eyJtb2RlIjoib3B0LWluIn0sIjYiOnsibW9kZSI6Im9wdC1pbiJ9LCI3Ijp7Im1vZGUiOiJvcHQtaW4ifX0sInB1cnBvc2VzIjp7IjAiOiJBTSIsIjEiOiJBRCIsIjIiOiJDUCIsIjMiOiJQUiIsIjQiOiJQUiIsIjUiOiJQUiIsIjYiOiJBRCIsIjciOiJETCJ9LCJfdCI6Im16c2xuYWlifG1rNDZwdDZiIn0%3D"
+      },
+      {
+        "name": "_pcid",
+        "value": "%7B%22browserId%22%3A%22mk46psmy126fysz7%22%2C%22_t%22%3A%22mzslnaic%7Cmk46pt6c%22%7D"
+      },
+      {
+        "name": "_pctx",
+        "value": "%7Bu%7DN4IgrgzgpgThIC4B2YA2qA05owMoBcBDfSREQpAeyRCwgEt8oBJAEzIGYA2ABi644AmQQFYALDwDsYgIwiR3AJy0QAfXxkAtgC8IqJIXoBzAD6aA1mK4AHfFyMgAvkA"
+      },
+      {
+        "name": "__tbc",
+        "value": "%7Bkpex%7Dzh9oki7qsWbgSxfKwQclgEzukI0rU6JsTDKd2bmEoGcDZTCrEaa8DnixAlsSJgqs"
+      },
+      {
+        "name": "__pat",
+        "value": "0"
+      },
+      {
+        "name": "__pvi",
+        "value": "eyJpZCI6InYtbWs0NnBzbmJjaWZlZmUzbiIsImRvbWFpbiI6Ii5iYmMuY29tIiwidGltZSI6MTc2NzgwMDQwMzU1N30%3D"
+      },
+      {
+        "name": "xbc",
+        "value": "%7Bkpex%7DMkOVBS_4ZZULA7cHLdoss2tq9hujF97uwFwL1dGEI6E"
+      },
+      {
+        "name": "_pcus",
+        "value": "eyJ1c2VyU2VnbWVudHMiOnsiQ09NUE9TRVIxWCI6eyJzZWdtZW50cyI6WyJMVHJldHVybjplN2Y1N2MxNTRhZWZmYWYxYjM0YWY2ZDZiYjcxMjg0ZjQ0NDUxMzllOm5vX3Njb3JlIiwiTFRyZWc6NmEwNDExZjNmZWRjYWZmZGU2ODY5ODk0N2Y5Zjg1ZDFlYjg5ZGM2NTpub19zY29yZSIsIkxUczpjMGI4YTFiYzlhMWYwNDY3MWFkYmViMjFmZDQyZTQ4YjNjMTBkM2JkOm5vX3Njb3JlIiwiQ1Njb3JlOjg3ODMwYTc1NzQ2YWQzM2Q5NjA2NjkzODliMzY0NjJiMDI5OTAyNmI6bm9fc2NvcmUiLCJSZXZlbnVlT3B0OmRlMmUwZDI4MTdhMTdlODc1MTUwZDhmYjkwYTMyNTViNGJiNTZiN2Y6MzUiXX19LCJfdCI6Im16c2xuYWxyfG1rNDZwdDlyIn0%3D"
+      },
+      {
+        "name": "cX_P",
+        "value": "mk46psmy126fysz7"
+      },
+      {
+        "name": "DM_SitId1778",
+        "value": "1"
+      },
+      {
+        "name": "DM_SitId1778SecId13934",
+        "value": "1"
+      },
+      {
+        "name": "cX_G",
+        "value": "cx%3A1z0ow0d4nkz9b2f7aogguof817%3Alno3qk9v6j8m"
+      },
+      {
+        "name": "ecos.dt",
+        "value": "1767805100428"
+      }
+    ],
+    "browser": [
+      {
+        "name": "optimizelyEndUserId",
+        "domain": ".bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": 1783352397
+      },
+      {
+        "name": "optimizelySession",
+        "domain": ".bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": 1783352397
+      },
+      {
+        "name": "ckns_policy",
+        "domain": ".bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": 1799336397
+      },
+      {
+        "name": "ckns_explicit",
+        "domain": ".bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": 1799336397
+      },
+      {
+        "name": "_sp_su",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "no_restriction",
+        "expirationDate": 1799336399.640091
+      },
+      {
+        "name": "usnatUUID",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "no_restriction",
+        "expirationDate": 1799336400.106843
+      },
+      {
+        "name": "permutive-id",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "no_restriction",
+        "expirationDate": 1783438799
+      },
+      {
+        "name": "_cb",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": 1801928402
+      },
+      {
+        "name": "_chartbeat2",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": 1801928402
+      },
+      {
+        "name": "_pprv",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "lax",
+        "expirationDate": 1801928403
+      },
+      {
+        "name": "_pcid",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "lax",
+        "expirationDate": 1801928403
+      },
+      {
+        "name": "_pctx",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "lax",
+        "expirationDate": 1801928403
+      },
+      {
+        "name": "__tbc",
+        "domain": ".bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "lax",
+        "expirationDate": 1802360403.54949
+      },
+      {
+        "name": "__pat",
+        "domain": ".bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "lax",
+        "expirationDate": 1770392403
+      },
+      {
+        "name": "__pvi",
+        "domain": ".bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "lax",
+        "expirationDate": 1767886803
+      },
+      {
+        "name": "xbc",
+        "domain": ".bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "lax",
+        "expirationDate": 1802360403.562897
+      },
+      {
+        "name": "_pcus",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "lax",
+        "expirationDate": 1801928403
+      },
+      {
+        "name": "cX_P",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": 1801928403
+      },
+      {
+        "name": "DM_SitId1778",
+        "domain": "www.bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": null
+      },
+      {
+        "name": "DM_SitId1778SecId13934",
+        "domain": "www.bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": null
+      },
+      {
+        "name": "cX_G",
+        "domain": ".bbc.com",
+        "secure": true,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": 1801928407
+      },
+      {
+        "name": "ecos.dt",
+        "domain": ".www.bbc.com",
+        "secure": false,
+        "httpOnly": false,
+        "sameSite": "unspecified",
+        "expirationDate": null
       }
     ]
-  },
-  "cmp_detected": "OneTrust"
+  }
 }

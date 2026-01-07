@@ -1,6 +1,6 @@
 from typing import List
 from dataclasses import dataclass
-
+from typing import List, Dict, Any
 
 @dataclass
 class Cookie:
@@ -26,10 +26,10 @@ class ConsentUI:
     consent_required_to_proceed: bool
     categories: List[Category]
 
-
 @dataclass
 class CookieAnalyzerInput:
     site_domain: str
-    cookies: List[Cookie]
-    consent_ui: ConsentUI
-    cmp_detected: str
+    cookies: List[Any]              # Browser cookies (normalized)
+    dom_cookies: List[Dict[str, Any]]
+    cmp_info: Dict[str, Any]
+    consent_ui: Any
