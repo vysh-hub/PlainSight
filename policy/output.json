@@ -1,0 +1,26 @@
+{
+  "url": "https://sampleplatform.com/terms-of-service",
+  "title": "Terms of Service",
+  "is_policy_page": true,
+  "summary_simple": "These Terms of Service explain how you can use SamplePlatform. You must be at least 13 years old and keep your account information safe. The platform can suspend or terminate your access if you break the rules.",
+  "key_takeaways": [
+    "You must agree to the Terms to use the platform.",
+    "Users must be at least 13 years old.",
+    "You are responsible for your account security.",
+    "Misusing the platform can lead to suspension.",
+    "All content is owned by SamplePlatform or its licensors.",
+    "The Terms can change, and continued use means you accept the changes."
+  ],
+  "risks": [
+    "Account security risks if credentials are shared.",
+    "Possible suspension of access for rule violations.",
+    "Liability limitations may affect user claims."
+  ],
+  "red_flags": [
+    "Terms can change without direct notice.",
+    "Broad rights to terminate access at discretion."
+  ],
+  "policy_risk_score": 2,
+  "risk_level": "Low",
+  "captured_at": "2026-01-07T11:05:00+05:30"
+}
