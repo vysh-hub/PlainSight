@@ -5,7 +5,8 @@
 "description": "Reads webpage text and displays it in a side panel",
 "permissions": ["cookies","sidePanel", "activeTab", "scripting","tabs"],
 "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "http://localhost:8000/*"
   ],
 "background": {
 "service_worker": "background.js"
