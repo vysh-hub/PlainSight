@@ -1,3 +1,5 @@
+doneee
+
 // ================= PDF.js SETUP =================
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   chrome.runtime.getURL("lib/pdf/pdf.worker.js");
@@ -323,7 +325,7 @@ function renderPolicyOutput(policyOut) {
 // ================= BUILD JSON + RENDER =================
 async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
 
-  // 🔹 Policy JSON
+  // 🔹 Policy JSON (unchanged)
   const policyJSON = {
     url: url,
     raw_text: text,
@@ -347,7 +349,7 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     policyOut = { error: String(e.message || e) };
   }
 
-  // --- COOKIES (THIS WAS MISSING) ---
+  // --- COOKIES ---
   let cookieOut = null;
   try {
     cookieOut = await runCookieAnalyzer(cookieAnalyzerPayload);
@@ -361,14 +363,14 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     ${renderPolicyOutput(policyOut)}
 
     <h3>Cookie Analyzer</h3>
+
     ${
       cookieOut?.summary
         ? `<p><b>Summary:</b> ${cookieOut.summary}</p>`
-        : `<p>No summary available.</p>`
+        : `<p>No cookie summary available.</p>`
     }
 
-    <h4>Risk Level</h4>
-    <p><b>${cookieOut?.risk_level || "Unknown"}</b></p>
+    <p><b>Risk Level:</b> ${cookieOut?.risk_level || "Unknown"}</p>
 
     <h4>Flags</h4>
     <ul>
@@ -376,7 +378,7 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     </ul>
 
     <details style="margin-top:12px;">
-      <summary><b>Technical Details</b></summary>
+      <summary><b>Technical Output</b></summary>
       <pre>${JSON.stringify(cookieOut, null, 2).slice(0, 4000)}</pre>
     </details>
   `;
