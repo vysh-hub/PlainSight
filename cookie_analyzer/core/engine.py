@@ -1,67 +1,22 @@
-from typing import Dict, Any, Set, List
+from typing import Dict, Any, Set
 
 from cookie_analyzer.core.schemas import CookieAnalyzerInput
 from cookie_analyzer.rules.ui_rules import run_ui_checks
 from cookie_analyzer.rules.cookie_rules import run_cookie_checks
 from cookie_analyzer.rules.deception_rules import run_deception_checks
-from cookie_analyzer.rules.consent_rules import (
-    detect_pre_consent_tracking,
-    detect_user_profiling_identifiers,
-    detect_non_standard_consent_signals,
-)
-def _build_cookie_stats(cookies):
-    total = len(cookies)
-    session = sum(1 for c in cookies if getattr(c, "session", False))
-    persistent = total - session
-
-    return {
-        "total": total,
-        "session": session,
-        "persistent": persistent,
-    }
-
-
-def _build_evidence(consent_flags):
-    return list(
-        {f.get("cookie") for f in consent_flags if f.get("cookie")}
-    )
-
-
-def _build_summary(risk_level, flags):
-    if risk_level == "high":
-        return (
-            "This site exhibits multiple high-risk privacy behaviors, "
-            "including tracking or profiling cookies without clear consent."
-        )
-    if risk_level == "medium":
-        return (
-            "This site shows potential privacy concerns that may affect user consent or data usage."
-        )
-    return "No significant privacy risks were detected based on observed cookie behavior."
-
 
 
 def analyze_cookie_usage(data: CookieAnalyzerInput) -> Dict[str, Any]:
-    """
-    Main orchestration function.
-    Runs all deterministic checks and returns structured findings.
-    This is the PRIMARY entry point for the browser extension.
-    """
-
     flags: Set[str] = set()
     facts: Dict[str, Any] = {}
 
-    # -----------------------------
     # 1. Consent UI checks
-    # -----------------------------
     run_ui_checks(
         consent_ui=data.consent_ui,
         flags=flags,
     )
 
-    # -----------------------------
     # 2. Cookie behavior checks
-    # -----------------------------
     run_cookie_checks(
         cookies=data.cookies,
         consent_ui=data.consent_ui,
@@ -70,9 +25,7 @@ def analyze_cookie_usage(data: CookieAnalyzerInput) -> Dict[str, Any]:
         facts=facts,
     )
 
-    # -----------------------------
     # 3. Deception / misleading usage checks
-    # -----------------------------
     run_deception_checks(
         consent_ui=data.consent_ui,
         cookies=data.cookies,
@@ -80,68 +33,23 @@ def analyze_cookie_usage(data: CookieAnalyzerInput) -> Dict[str, Any]:
         facts=facts,
     )
 
-    # -----------------------------
-    # 4. Consent framework analysis (NEW)
-    # -----------------------------
-    consent_flags: List[Dict[str, Any]] = []
-
-    consent_flags.extend(
-        detect_pre_consent_tracking(
-            dom_cookies=data.dom_cookies,
-            cmp_info=data.cmp_info,
-        )
-    )
-
-    consent_flags.extend(
-        detect_user_profiling_identifiers(
-            cookies=data.cookies
-        )
-    )
-
-    consent_flags.extend(
-        detect_non_standard_consent_signals(
-            cookies=data.cookies,
-            cmp_info=data.cmp_info,
-        )
-    )
-
-    # Merge consent flags into global flag set
-    for f in consent_flags:
-        flags.add(f["type"])
-
-    # -----------------------------
-    # 5. Risk scoring (deterministic)
-    # -----------------------------
+    # 4. Risk scoring
     risk_level = _compute_risk_level(flags)
 
-    # -----------------------------
-    # 6. Final structured response
-    # -----------------------------
-    cookie_stats = _build_cookie_stats(data.cookies)
-    evidence = _build_evidence(consent_flags)
-    summary = _build_summary(risk_level, flags)
+    # 🔹 THIS IS THE IMPORTANT LINE
+    summary = build_summary(flags, facts)
 
     return {
-        "url": data.site_domain,
-        "summary": summary,
+        "site_domain": data.site_domain,
         "risk_level": risk_level,
+        "summary": summary,
         "flags": sorted(flags),
-        "cookie_stats": cookie_stats,
-        "evidence": evidence,
-        "consent_analysis": {
-            "cmp_detected": data.cmp_info.get("detected", {}),
-            "providers": data.cmp_info.get("providers", {}),
-            "flags": consent_flags,
-        },
+        "facts": facts,
     }
 
 
 
 def _compute_risk_level(flags: Set[str]) -> str:
-    """
-    Compute overall risk level based on number of flags.
-    Deterministic and explainable.
-    """
     count = len(flags)
 
     if count >= 5:
@@ -149,3 +57,38 @@ def _compute_risk_level(flags: Set[str]) -> str:
     if count >= 2:
         return "medium"
     return "low"
+def build_summary(flags: Set[str], facts: Dict[str, Any]) -> str:
+    if not flags:
+        return "No significant cookie or consent risks were detected."
+
+    lines = []
+
+    if "third_party_cookie" in flags:
+        domains = facts.get("third_party_domains", [])
+        if domains:
+            lines.append(
+                f"Third-party cookies were detected from domains such as {', '.join(domains[:3])}."
+            )
+        else:
+            lines.append("Third-party cookies were detected.")
+
+    if "long_retention" in flags:
+        days = facts.get("max_retention_days")
+        if days:
+            lines.append(
+                f"Some cookies persist for up to {days} days, which may enable long-term tracking."
+            )
+        else:
+            lines.append("Some cookies have long retention periods.")
+
+    if "asymmetric_choice" in flags:
+        lines.append(
+            "Rejecting cookies requires more effort than accepting them, which may limit user choice."
+        )
+
+    if "prechecked_nonessential" in flags:
+        lines.append(
+            "Non-essential cookies are enabled by default without explicit user consent."
+        )
+
+    return " ".join(lines)

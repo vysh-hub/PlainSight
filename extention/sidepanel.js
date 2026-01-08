@@ -195,6 +195,69 @@ async function runPolicySummariser(policyJSON) {
 
   return await res.json(); // this is your output.json
 }
+async function runCookieAnalyzer(cookiePayload) {
+  const res = await fetch("http://localhost:8000/cookies/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cookiePayload)
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Cookie backend ${res.status}: ${txt}`);
+  }
+
+  return await res.json();
+}
+
+//COOKIE 
+function buildCookieAnalyzerPayload(url, browserCookies, cmpInfo) {
+  const siteDomain = new URL(url).hostname;
+
+  // Convert expirationDate → expiry_days
+  const normalizedCookies = browserCookies.map(c => {
+    let expiryDays = 0;
+    if (c.expirationDate) {
+      const now = Date.now() / 1000;
+      expiryDays = Math.max(
+        0,
+        Math.round((c.expirationDate - now) / (60 * 60 * 24))
+      );
+    }
+
+    return {
+      name: c.name,
+      domain: c.domain,
+      expiry_days: expiryDays,
+      secure: !!c.secure,
+      sameSite: c.sameSite || "None"
+    };
+  });
+
+  // VERY conservative consent UI inference (v1)
+  const consentUI = {
+    accept_clicks: 1,
+    reject_clicks: 2,
+    manage_preferences_visible: true,
+    consent_required_to_proceed: false,
+    categories: [
+      {
+        label: "Analytics",
+        description: "Analytics cookies",
+        prechecked: true
+      }
+    ]
+  };
+
+  return {
+    site_domain: siteDomain,
+    cookies: normalizedCookies,
+    consent_ui: consentUI,
+    cmp_detected: Object.keys(cmpInfo.providers)
+      .filter(k => cmpInfo.providers[k])
+      .join(",") || "unknown"
+  };
+}
 
 // ================= BUILD JSON + RENDER =================
 async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
@@ -207,21 +270,11 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
   };
 
   // 🔹 Cookies JSON (for analyzer)
-  const cookiesJSON = {
-    url: url,
-    cmp: cmpInfo,
-    cookies: {
-      dom: domCookies,
-      browser: browserCookies.map(c => ({
-        name: c.name,
-        domain: c.domain,
-        secure: c.secure,
-        httpOnly: c.httpOnly,
-        sameSite: c.sameSite,
-        expirationDate: c.expirationDate || null
-      }))
-    }
-  };
+const cookieAnalyzerPayload = buildCookieAnalyzerPayload(
+  url,
+  browserCookies,
+  cmpInfo
+);
 
   output.innerHTML = `<li>Sending policy text to summariser...</li>`;
 
@@ -241,6 +294,17 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     <pre>${JSON.stringify(cookiesJSON, null, 2).slice(0, 3000)}</pre>
   `;
 }
+
+let cookieOut = null;
+try {
+  cookieOut = await runCookieAnalyzer(cookieAnalyzerPayload);
+} catch (e) {
+  cookieOut = { error: String(e.message || e) };
+}
+output.innerHTML += `
+  <h3>Cookie Analyzer OUTPUT</h3>
+  <pre>${JSON.stringify(cookieOut, null, 2).slice(0, 4000)}</pre>
+`;
 
 //   // Store globally (useful later)
 //   window.__POLICY_JSON__ = policyJSON;

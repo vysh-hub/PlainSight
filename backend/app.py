@@ -4,6 +4,12 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from backend.db import save_policy
+
+from cookie_analyzer.core.engine import analyze_cookie_usage
+from backend.db import save_cookie
+
+
 
 # --- Make sure Python can import your policy package ---
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # PlainSight/
@@ -30,6 +36,35 @@ class PolicyReq(BaseModel):
     title: str = ""
     raw_text: str
     captured_at: Optional[str] = None
+class Cookie(BaseModel):
+    name: str
+    domain: str
+    expiry_days: int
+    secure: bool
+    sameSite: str
+
+
+class Category(BaseModel):
+    label: str
+    description: str
+    prechecked: bool
+
+
+class ConsentUI(BaseModel):
+    accept_clicks: int
+    reject_clicks: int
+    manage_preferences_visible: bool
+    consent_required_to_proceed: bool
+    categories: list[Category]
+
+
+class CookieReq(BaseModel):
+    site_domain: str
+    cookies: list[Cookie]
+    consent_ui: ConsentUI
+    cmp_detected: str
+
+
 
 @app.get("/health")
 def health():
@@ -46,11 +81,19 @@ def analyze(req: PolicyReq):
 
     out = run_policy_pipeline(inp)
 
-    # Return only what the side panel needs (stable contract)
-    return {       
+    save_policy(req.url, out)
+
+    return {
         "summary_simple": out.get("summary_simple", ""),
         "key_takeaways": out.get("key_takeaways", []),
-
         "policy_risk_score": out.get("policy_risk_score", 0),
         "risk_level": out.get("risk_level", "Low"),
     }
+@app.post("/cookies/analyze")
+def analyze_cookies(req: CookieReq):
+    result = analyze_cookie_usage(req)
+    return result
+
+@app.get("/")
+def root():
+    return {"status": "PlainSight backend running"}
