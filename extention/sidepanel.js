@@ -257,10 +257,10 @@ function renderPolicyOutput(policyOut) {
   `;
 }
 
-function buildCookieAnalyzerPayload(url, cookiesJSON, cmpInfo) {
+function buildCookieAnalyzerPayload(url, browserCookies, cmpInfo) {
   const siteDomain = new URL(url).hostname;
 
-  const normalizedCookies = cookiesJSON.cookies.browser.map(c => {
+const normalizedCookies = browserCookies.map(c => {
     let expiryDays = 0;
 
     if (c.expirationDate) {
@@ -305,38 +305,43 @@ function buildCookieAnalyzerPayload(url, cookiesJSON, cmpInfo) {
         .join(",") || "unknown"
   };
 }
+async function runCookieAnalyzer(cookiePayload) {
+  const res = await fetch("http://127.0.0.1:8000/cookies/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(cookiePayload)
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Cookie backend ${res.status}: ${txt}`);
+  }
+
+  return await res.json();
+}
+
 
 
 // ================= BUILD JSON + RENDER =================
 async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
 
-  // 🔹 Policy JSON
+  // 🔹 Policy payload
   const policyJSON = {
     url: url,
     raw_text: text,
     captured_at: new Date().toISOString()
   };
 
-  // 🔹 Raw cookies JSON (evidence)
-  const cookiesJSON = {
-    url: url,
-    cmp: cmpInfo,
-    cookies: {
-      dom: domCookies,
-      browser: browserCookies.map(c => ({
-        name: c.name,
-        domain: c.domain,
-        secure: c.secure,
-        httpOnly: c.httpOnly,
-        sameSite: c.sameSite,
-        expirationDate: c.expirationDate || null
-      }))
-    }
-  };
+  // 🔹 Cookie analyzer payload (MATCHES BACKEND SCHEMA)
+  const cookieAnalyzerPayload = buildCookieAnalyzerPayload(
+    url,
+    browserCookies,
+    cmpInfo
+  );
 
-  output.innerHTML = `<li>Running policy & cookie analysis...</li>`;
+  output.innerHTML = `<li>Sending data to analyzers...</li>`;
 
-  // ---------- POLICY ----------
+  // --- POLICY ---
   let policyOut = null;
   try {
     policyOut = await runPolicySummariser(policyJSON);
@@ -344,21 +349,15 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     policyOut = { error: String(e.message || e) };
   }
 
-  // ---------- COOKIE ANALYZER ----------
+  // --- COOKIES ---
   let cookieOut = null;
   try {
-    const cookieAnalyzerPayload = buildCookieAnalyzerPayload(
-      url,
-      cookiesJSON,
-      cmpInfo
-    );
-
     cookieOut = await runCookieAnalyzer(cookieAnalyzerPayload);
   } catch (e) {
     cookieOut = { error: String(e.message || e) };
   }
 
-  // ---------- FINAL RENDER (THIS WAS MISSING) ----------
+  // --- RENDER ---
   output.innerHTML = `
     <h3>Policy Analysis</h3>
     ${renderPolicyOutput(policyOut)}
@@ -368,7 +367,7 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     ${
       cookieOut?.summary
         ? `<p><b>Summary:</b> ${cookieOut.summary}</p>`
-        : `<p>No cookie summary available.</p>`
+        : `<p style="color:#999;">No cookie summary available.</p>`
     }
 
     <p><b>Risk Level:</b> ${cookieOut?.risk_level || "Unknown"}</p>
