@@ -1,5 +1,3 @@
-doneee
-
 // ================= PDF.js SETUP =================
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   chrome.runtime.getURL("lib/pdf/pdf.worker.js");
