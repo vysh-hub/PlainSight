@@ -4,10 +4,10 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from backend.db import save_policy
+#from backend.db import save_policy
 
 from cookie_analyzer.core.engine import analyze_cookie_usage
-from backend.db import save_cookie
+#from backend.db import save_cookie
 
 
 
@@ -81,7 +81,7 @@ def analyze(req: PolicyReq):
 
     out = run_policy_pipeline(inp)
 
-    save_policy(req.url, out)
+    #save_policy(req.url, out)
 
     return {
         "summary_simple": out.get("summary_simple", ""),
