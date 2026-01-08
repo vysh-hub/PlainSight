@@ -1,6 +1,6 @@
 {
 "manifest_version": 3,
-"name": "Side Panel Text Reader",
+"name": "Privacy & Cookie Tracker - PlainSight",
 "version": "1.0",
 "description": "Reads webpage text and displays it in a side panel",
 "permissions": ["cookies","sidePanel", "activeTab", "scripting","tabs"],

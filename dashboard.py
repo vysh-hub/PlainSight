@@ -27,6 +27,7 @@ HISTORY = [
             "Retention period is not clearly stated"
         ]
     },
+    
     {
         "site": "linkedin.com",
         "category": "Social",
@@ -62,7 +63,7 @@ def risk_emoji(level):
     }.get(level, "⚪")
 
 # ---------------- HEADER ----------------
-st.title("🛡️ PlainSight")
+st.title("PlainSight")
 st.caption("Your Privacy Risk Dashboard")
 
 st.markdown("---")
@@ -83,7 +84,7 @@ c4.metric("Low Risk", low, delta=None)
 st.markdown("---")
 
 # ---------------- ACTIVITY / HISTORY ----------------
-st.subheader("📋 Privacy Activity")
+st.subheader("Privacy Activity")
 
 df = pd.DataFrame([
     {
@@ -109,7 +110,7 @@ for h in HISTORY:
 st.markdown("---")
 
 # ---------------- PROFILE ----------------
-st.subheader("👤 Profile")
+st.subheader("Profile")
 
 p1, p2 = st.columns(2)
 p1.write(f"**Name:** {USER['name']}")
@@ -120,7 +121,7 @@ p2.write("**Last Scan:** Today")
 st.markdown("---")
 
 # ---------------- AWARENESS ----------------
-st.subheader("📚 Privacy Awareness")
+st.subheader("Privacy Awareness")
 
 st.markdown("""
 **Why does privacy risk matter?**  
