@@ -6,14 +6,54 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 const btn = document.getElementById("readText");
 const output = document.getElementById("output");
 
-// ================= MAIN BUTTON =================
-btn.addEventListener("click", async () => {
-  output.innerHTML = "<li>Scanning page for policy links...</li>";
+// ================= AUTO SCAN ENTRY ================= 
+document.addEventListener("DOMContentLoaded", () => {
+  autoScan();
+});
 
+// ================= MANUAL FALLBACK =================
+btn.addEventListener("click", () => {
+  autoScan(true);
+});
+
+// ================= AUTO SCAN =================
+async function autoScan(isManual = false) {
+  try {
+    output.innerHTML = `<li>${isManual ? "Re-scanning" : "Auto-scanning"} for policy links...</li>`;
+
+    const links = await scanForPolicyLinks();
+
+    if (!links.length) return;
+
+    // 🔹 Priority: Privacy > Cookie > Terms > Others
+    const priorityOrder = ["privacy", "cookie", "terms", "policy", "legal"];
+
+    const selected =
+      links.find(l =>
+        priorityOrder.some(p => l.text.toLowerCase().includes(p))
+      ) || links[0];
+
+    output.innerHTML = `<li>Using policy: <b>${selected.text}</b></li>`;
+
+    handlePolicyLink(selected.href);
+
+  } catch (err) {
+    output.innerHTML = `<li>Scan failed: ${err.message}</li>`;
+  }
+}
+
+// ================= SCAN PAGE =================
+async function scanForPolicyLinks() {
   const [tab] = await chrome.tabs.query({
     active: true,
     currentWindow: true
   });
+
+  // 🚫 Block restricted URLs
+  if (!tab?.url || !tab.url.startsWith("http")) {
+    output.innerHTML = "<li>Cannot scan this page (restricted URL)</li>";
+    return [];
+  }
 
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
@@ -23,35 +63,15 @@ btn.addEventListener("click", async () => {
           text: a.innerText.trim(),
           href: a.href
         }))
-        .filter(link =>
-          link.text &&
-          /privacy|cookie|terms|policy|legal/i.test(link.text)
+        .filter(l =>
+          l.text &&
+          /privacy|cookie|terms|policy|legal/i.test(l.text)
         );
     }
   });
 
-  output.innerHTML = "";
-
-  if (!result || result.length === 0) {
-    output.innerHTML = "<li>No policy links found</li>";
-    return;
-  }
-
-  result.forEach(link => {
-    const li = document.createElement("li");
-    const a = document.createElement("a");
-
-    a.href = "#";
-    a.textContent = link.text;
-
-    a.addEventListener("click", () => {
-      handlePolicyLink(link.href);
-    });
-
-    li.appendChild(a);
-    output.appendChild(li);
-  });
-});
+  return result || [];
+}
 
 // ================= CORE ROUTER =================
 async function handlePolicyLink(url) {
@@ -105,7 +125,7 @@ function getBrowserCookies(url) {
 function fetchHTML(url, domCookies, browserCookies, cmpInfo) {
   chrome.runtime.sendMessage(
     { type: "FETCH_POLICY", url },
-    (response) => {
+    response => {
       if (!response || response.error) {
         output.innerHTML = "<li>Error loading policy</li>";
         return;
@@ -124,7 +144,7 @@ function fetchHTML(url, domCookies, browserCookies, cmpInfo) {
 function fetchPDF(url, domCookies, browserCookies, cmpInfo) {
   chrome.runtime.sendMessage(
     { type: "FETCH_PDF", url },
-    async (response) => {
+    async response => {
       if (!response || response.error) {
         output.innerHTML = "<li>Error loading PDF</li>";
         return;
@@ -150,7 +170,7 @@ function fetchPDF(url, domCookies, browserCookies, cmpInfo) {
   );
 }
 
-// ================= CMP DETECTION (SYNC & SAFE) =================
+// ================= CMP DETECTION =================
 function detectCMP() {
   return {
     detected: {
@@ -182,12 +202,13 @@ async function getCMPInfo(tabId) {
 }
 
 // ================= BUILD JSON + RENDER =================
-function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
+async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
 
   // 🔹 Policy JSON (for summarizer)
   const policyJSON = {
     url: url,
-    policy_text: text
+    raw_text: text,
+    captured_at: new Date().toISOString()
   };
 
   // 🔹 Cookies JSON (for analyzer)
@@ -207,30 +228,49 @@ function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
     }
   };
 
-  // Store globally (useful later)
-  window.__POLICY_JSON__ = policyJSON;
-  window.__COOKIES_JSON__ = cookiesJSON;
+  output.innerHTML = `<li>Sending policy text to summariser...</li>`;
 
-  function downloadJSON(data, filename) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json"
-  });
-  const url = URL.createObjectURL(blob);
+  let policyOut = null;
+  try {
+    policyOut = await runPolicySummariser(policyJSON);
+  } catch (e) {
+    policyOut = { error: String(e.message || e) };
+  }
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-
-  URL.revokeObjectURL(url);
-}
-
-  // 🔹 Render for testing
+  // Render for testing
   output.innerHTML = `
-    <h3>Policy JSON (for Summarizer)</h3>
-    <pre>${JSON.stringify(policyJSON, null, 2).slice(0, 3000)}</pre>
+    <h3>Policy OUTPUT (from Summariser)</h3>
+    <pre>${JSON.stringify(policyOut, null, 2).slice(0, 6000)}</pre>
 
     <h3>Cookies JSON (for Analyzer)</h3>
-    <pre>${JSON.stringify(cookiesJSON, null, 2)}</pre>
+    <pre>${JSON.stringify(cookiesJSON, null, 2).slice(0, 3000)}</pre>
   `;
 }
+
+//   // Store globally (useful later)
+//   window.__POLICY_JSON__ = policyJSON;
+//   window.__COOKIES_JSON__ = cookiesJSON;
+
+//   function downloadJSON(data, filename) {
+//   const blob = new Blob([JSON.stringify(data, null, 2)], {
+//     type: "application/json"
+//   });
+//   const url = URL.createObjectURL(blob);
+
+//   const a = document.createElement("a");
+//   a.href = url;
+//   a.download = filename;
+//   a.click();
+
+//   URL.revokeObjectURL(url);
+// }
+
+//   // 🔹 Render for testing
+//   output.innerHTML = `
+//     <h3>Policy JSON (for Summarizer)</h3>
+//     <pre>${JSON.stringify(policyJSON, null, 2).slice(0, 3000)}</pre>
+
+//     <h3>Cookies JSON (for Analyzer)</h3>
+//     <pre>${JSON.stringify(cookiesJSON, null, 2)}</pre>
+//   `;
+// }
