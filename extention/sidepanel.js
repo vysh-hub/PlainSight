@@ -25,7 +25,6 @@ async function autoScan(isManual = false) {
 
     if (!links.length) return;
 
-    // 🔹 Priority: Privacy > Cookie > Terms > Others
     const priorityOrder = ["privacy", "cookie", "terms", "policy", "legal"];
 
     const selected =
@@ -42,14 +41,12 @@ async function autoScan(isManual = false) {
   }
 }
 
-// ================= SCAN PAGE =================
 async function scanForPolicyLinks() {
   const [tab] = await chrome.tabs.query({
     active: true,
     currentWindow: true
   });
 
-  // 🚫 Block restricted URLs
   if (!tab?.url || !tab.url.startsWith("http")) {
     output.innerHTML = "<li>Cannot scan this page (restricted URL)</li>";
     return [];
@@ -215,6 +212,51 @@ async function runPolicySummariser(policyJSON) {
   return await res.json(); // this is your output.json
 }
 
+function renderPolicyOutput(policyOut) {
+  if (!policyOut) {
+    return "<p>No policy analysis available.</p>";
+  }
+
+  if (policyOut.error) {
+    return `<p style="color:red;">Error: ${policyOut.error}</p>`;
+  }
+
+  const {
+    summary_simple,
+    key_takeaways = [],
+    policy_risk_score,
+    risk_level
+  } = policyOut;
+
+  const riskColor =
+    risk_level === "High" ? "#d32f2f" :
+    risk_level === "Medium" ? "#f9a825" :
+    "#2e7d32";
+
+  return `
+    <div class="policy-box">
+
+      <h4>Summary</h4>
+      <p>${summary_simple || "No summary available."}</p>
+
+      <h4>Key Takeaways</h4>
+      <ul>
+        ${key_takeaways.map(k => `<li>${k}</li>`).join("")}
+      </ul>
+
+      <h4>Risk Assessment</h4>
+      <p>
+        <strong>Risk Level:</strong>
+        <span style="color:${riskColor}; font-weight:600;">
+          ${risk_level || "Unknown"}
+        </span>
+      </p>
+      <p><strong>Risk Score:</strong> ${policy_risk_score ?? "N/A"} / 10</p>
+
+    </div>
+  `;
+}
+
 // ================= BUILD JSON + RENDER =================
 async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
 
@@ -253,11 +295,13 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
 
   // Render for testing
   output.innerHTML = `
-    <h3>Policy OUTPUT (from Summariser)</h3>
-    <pre>${JSON.stringify(policyOut, null, 2).slice(0, 6000)}</pre>
+  <h3>Policy Analysis</h3>
+  ${renderPolicyOutput(policyOut)}
 
-    <h3>Cookies JSON (for Analyzer)</h3>
+  <details style="margin-top:12px;">
+    <summary><b>Cookies JSON (for Analyzer)</b></summary>
     <pre>${JSON.stringify(cookiesJSON, null, 2).slice(0, 3000)}</pre>
+  </details>
   `;
 }
 
