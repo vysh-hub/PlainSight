@@ -257,17 +257,67 @@ function renderPolicyOutput(policyOut) {
   `;
 }
 
+function buildCookieAnalyzerPayload(url, cookiesJSON, cmpInfo) {
+  const siteDomain = new URL(url).hostname;
+
+  const normalizedCookies = cookiesJSON.cookies.browser.map(c => {
+    let expiryDays = 0;
+
+    if (c.expirationDate) {
+      const now = Date.now() / 1000;
+      expiryDays = Math.max(
+        0,
+        Math.round((c.expirationDate - now) / (60 * 60 * 24))
+      );
+    }
+
+    return {
+      name: c.name,
+      domain: c.domain,
+      expiry_days: expiryDays,
+      secure: !!c.secure,
+      sameSite: c.sameSite || "None"
+    };
+  });
+
+  // v1 conservative consent inference (OK for now)
+  const consentUI = {
+    accept_clicks: 1,
+    reject_clicks: 2,
+    manage_preferences_visible: true,
+    consent_required_to_proceed: false,
+    categories: [
+      {
+        label: "Analytics",
+        description: "Analytics cookies",
+        prechecked: true
+      }
+    ]
+  };
+
+  return {
+    site_domain: siteDomain,
+    cookies: normalizedCookies,
+    consent_ui: consentUI,
+    cmp_detected:
+      Object.keys(cmpInfo.providers)
+        .filter(k => cmpInfo.providers[k])
+        .join(",") || "unknown"
+  };
+}
+
+
 // ================= BUILD JSON + RENDER =================
 async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
 
-  // 🔹 Policy JSON (for summarizer)
+  // 🔹 Policy JSON
   const policyJSON = {
     url: url,
     raw_text: text,
     captured_at: new Date().toISOString()
   };
 
-  // 🔹 Cookies JSON (for analyzer)
+  // 🔹 Raw cookies JSON (evidence)
   const cookiesJSON = {
     url: url,
     cmp: cmpInfo,
@@ -284,8 +334,9 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     }
   };
 
-  output.innerHTML = `<li>Sending policy text to summariser...</li>`;
+  output.innerHTML = `<li>Running policy & cookie analysis...</li>`;
 
+  // ---------- POLICY ----------
   let policyOut = null;
   try {
     policyOut = await runPolicySummariser(policyJSON);
@@ -293,42 +344,43 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     policyOut = { error: String(e.message || e) };
   }
 
-  // Render for testing
-  output.innerHTML = `
-  <h3>Policy Analysis</h3>
-  ${renderPolicyOutput(policyOut)}
+  // ---------- COOKIE ANALYZER ----------
+  let cookieOut = null;
+  try {
+    const cookieAnalyzerPayload = buildCookieAnalyzerPayload(
+      url,
+      cookiesJSON,
+      cmpInfo
+    );
 
-  <details style="margin-top:12px;">
-    <summary><b>Cookies JSON (for Analyzer)</b></summary>
-    <pre>${JSON.stringify(cookiesJSON, null, 2).slice(0, 3000)}</pre>
-  </details>
+    cookieOut = await runCookieAnalyzer(cookieAnalyzerPayload);
+  } catch (e) {
+    cookieOut = { error: String(e.message || e) };
+  }
+
+  // ---------- FINAL RENDER (THIS WAS MISSING) ----------
+  output.innerHTML = `
+    <h3>Policy Analysis</h3>
+    ${renderPolicyOutput(policyOut)}
+
+    <h3>Cookie Analysis</h3>
+
+    ${
+      cookieOut?.summary
+        ? `<p><b>Summary:</b> ${cookieOut.summary}</p>`
+        : `<p>No cookie summary available.</p>`
+    }
+
+    <p><b>Risk Level:</b> ${cookieOut?.risk_level || "Unknown"}</p>
+
+    <h4>Flags</h4>
+    <ul>
+      ${(cookieOut?.flags || []).map(f => `<li>${f}</li>`).join("")}
+    </ul>
+
+    <details style="margin-top:12px;">
+      <summary><b>Technical Details</b></summary>
+      <pre>${JSON.stringify(cookieOut, null, 2).slice(0, 4000)}</pre>
+    </details>
   `;
 }
-
-//   // Store globally (useful later)
-//   window.__POLICY_JSON__ = policyJSON;
-//   window.__COOKIES_JSON__ = cookiesJSON;
-
-//   function downloadJSON(data, filename) {
-//   const blob = new Blob([JSON.stringify(data, null, 2)], {
-//     type: "application/json"
-//   });
-//   const url = URL.createObjectURL(blob);
-
-//   const a = document.createElement("a");
-//   a.href = url;
-//   a.download = filename;
-//   a.click();
-
-//   URL.revokeObjectURL(url);
-// }
-
-//   // 🔹 Render for testing
-//   output.innerHTML = `
-//     <h3>Policy JSON (for Summarizer)</h3>
-//     <pre>${JSON.stringify(policyJSON, null, 2).slice(0, 3000)}</pre>
-
-//     <h3>Cookies JSON (for Analyzer)</h3>
-//     <pre>${JSON.stringify(cookiesJSON, null, 2)}</pre>
-//   `;
-// }

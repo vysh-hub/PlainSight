@@ -35,17 +35,16 @@ def analyze_cookie_usage(data: CookieAnalyzerInput) -> Dict[str, Any]:
 
     # 4. Risk scoring
     risk_level = _compute_risk_level(flags)
-
-    # 🔹 THIS IS THE IMPORTANT LINE
     summary = build_summary(flags, facts)
 
     return {
         "site_domain": data.site_domain,
         "risk_level": risk_level,
-        "summary": summary,
+        "summary": summary,      # ← now real text
         "flags": sorted(flags),
         "facts": facts,
     }
+
 
 
 
@@ -57,11 +56,23 @@ def _compute_risk_level(flags: Set[str]) -> str:
     if count >= 2:
         return "medium"
     return "low"
+
 def build_summary(flags: Set[str], facts: Dict[str, Any]) -> str:
     if not flags:
         return "No significant cookie or consent risks were detected."
 
     lines = []
+
+    if "forced_consent" in flags:
+        lines.append(
+            "The site appears to require users to accept cookies in order to proceed, "
+            "which may undermine free and informed consent."
+        )
+
+    if "potential_preconsent_tracking" in flags:
+        lines.append(
+            "Tracking-related cookies may be set before the user has explicitly given consent."
+        )
 
     if "third_party_cookie" in flags:
         domains = facts.get("third_party_domains", [])
@@ -76,14 +87,14 @@ def build_summary(flags: Set[str], facts: Dict[str, Any]) -> str:
         days = facts.get("max_retention_days")
         if days:
             lines.append(
-                f"Some cookies persist for up to {days} days, which may enable long-term tracking."
+                f"Some cookies persist for up to {days} days, enabling long-term tracking."
             )
         else:
             lines.append("Some cookies have long retention periods.")
 
     if "asymmetric_choice" in flags:
         lines.append(
-            "Rejecting cookies requires more effort than accepting them, which may limit user choice."
+            "Rejecting cookies appears to require more effort than accepting them."
         )
 
     if "prechecked_nonessential" in flags:
