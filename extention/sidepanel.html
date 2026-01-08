@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta charset="UTF-8" />
-<title>Page Text</title>
-<link rel="stylesheet" href="sidepanel.css" />
+    <meta charset="UTF-8" />
+    <title>PlainSight</title>
+    <link rel="stylesheet" href="sidepanel.css" />
 </head>
+
 <body>
-<h2>Page Text Reader</h2>
-<button id="readText">Get Analysis!</button>
-<button id="openDashboard" class="secondary-btn">
-  Open Privacy Dashboard
-</button>
-
-<ul id="output"></ul>
 
 
-<script src="/lib/pdf/pdf.js"></script>
-<script src="sidepanel.js"></script>
+
+    <header class="header">
+        <h2>PlainSight</h2>
+        <p class="subtitle">Privacy & Cookie Transparency</p>
+    </header>
+
+    <button id="readText">Analyze This Page</button>
+    <button id="openDashboard" class="secondary-btn">
+    Open Privacy Dashboard
+    </button>
+    
+
+    <div id="output" class="output"></div>
+
+    <script src="/lib/pdf/pdf.js"></script>
+    <script src="sidepanel.js"></script>
 </body>
+
 </html>
