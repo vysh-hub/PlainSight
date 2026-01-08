@@ -200,6 +200,20 @@ async function getCMPInfo(tabId) {
 
   return result;
 }
+async function runPolicySummariser(policyJSON) {
+  const res = await fetch("http://localhost:8000/policy/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(policyJSON)
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Backend ${res.status}: ${txt}`);
+  }
+
+  return await res.json(); // this is your output.json
+}
 
 // ================= BUILD JSON + RENDER =================
 async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {

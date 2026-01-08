@@ -2,22 +2,20 @@
   "url": "https://openai.com/policies/privacy-policy/california-privacy-rights-reporting/",
   "title": "",
   "is_policy_page": true,
-  "summary_simple": "This privacy policy explains how we collect, use, and protect your personal information. It details the types of data we gather and how we share it with third parties. You have rights regarding your data, including access and deletion options.",
+  "summary_simple": "The policy describes collecting personal and/or device information, but details may be unclear. Third-party sharing is not clearly stated in the policy. Does not clearly mention tracking/analytics/cookies.",
   "key_takeaways": [
-    "Personal information is collected from users.",
-    "Data may be shared with third parties.",
-    "Users can access their data.",
-    "Users can request deletion of their data.",
-    "Data protection measures are in place.",
-    "Policy may be updated periodically."
+    "The policy describes collecting personal and/or device information, but details may be unclear.",
+    "Third-party sharing is not clearly stated in the policy.",
+    "Does not clearly mention tracking/analytics/cookies.",
+    "Retention duration is unclear or not explicitly limited.",
+    "Opt-out/withdrawal options are not clearly described.",
+    "Deletion/erasure rights are not clearly described."
   ],
-  "risks": [
-    "Data breaches could expose personal information.",
-    "Third-party sharing may lead to misuse of data."
-  ],
+  "risks": [],
   "red_flags": [
-    "Vague language about data protection.",
-    "No clear opt-out options for data sharing."
+    "Retention duration is unclear or open-ended.",
+    "Opt-out/consent withdrawal is not clearly described.",
+    "Deletion/erasure rights are not clearly described."
   ],
   "policy_risk_score": 2,
   "risk_level": "Low",
