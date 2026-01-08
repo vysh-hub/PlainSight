@@ -257,6 +257,56 @@ function renderPolicyOutput(policyOut) {
   `;
 }
 
+function renderCookiePolicy(cookieOut) {
+  if (!cookieOut) {
+    return `
+      <div class="policy-box">
+        <p>No cookie analysis available.</p>
+      </div>
+    `;
+  }
+
+  if (cookieOut.error) {
+    return `
+      <div class="policy-box">
+        <p style="color:#dc2626;">Error: ${cookieOut.error}</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="policy-box">
+
+      <h4>Summary</h4>
+      <p>${cookieOut.summary || "No cookie summary available."}</p>
+
+      <h4>Risk Assessment</h4>
+      <p>
+        <strong>Risk Level:</strong>
+        ${cookieOut.risk_level || "Unknown"}
+      </p>
+
+      ${
+        cookieOut.flags && cookieOut.flags.length
+          ? `
+            <h4>Flags</h4>
+            <ul>
+              ${cookieOut.flags.map(f => `<li>${f}</li>`).join("")}
+            </ul>
+          `
+          : `<p style="color:#6b7280;">No major cookie flags detected.</p>`
+      }
+
+      <details>
+        <summary>Technical Details</summary>
+        <pre>${JSON.stringify(cookieOut, null, 2).slice(0, 3000)}</pre>
+      </details>
+
+    </div>
+  `;
+}
+
+
 function buildCookieAnalyzerPayload(url, browserCookies, cmpInfo) {
   const siteDomain = new URL(url).hostname;
 
@@ -364,26 +414,9 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
 
     <h3>Cookie Analysis</h3>
 
-    ${
-      cookieOut?.summary
-        ? `<p><b>Summary:</b> ${cookieOut.summary}</p>`
-        : `<p style="color:#999;">No cookie summary available.</p>`
-    }
-
-    <p><b>Risk Level:</b> ${cookieOut?.risk_level || "Unknown"}</p>
-
-    <h4>Flags</h4>
-    <ul>
-      ${(cookieOut?.flags || []).map(f => `<li>${f}</li>`).join("")}
-    </ul>
-
-    <details style="margin-top:12px;">
-      <summary><b>Technical Details</b></summary>
-      <pre>${JSON.stringify(cookieOut, null, 2).slice(0, 4000)}</pre>
-    </details>
+    ${renderCookiePolicy(cookieOut)}
   `;
 }
-
 document
   .getElementById("openDashboard")
   .addEventListener("click", () => {
