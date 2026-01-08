@@ -383,3 +383,11 @@ async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo
     </details>
   `;
 }
+
+document
+  .getElementById("openDashboard")
+  .addEventListener("click", () => {
+    chrome.tabs.create({
+      url: "http://localhost:8501"
+    });
+  });
