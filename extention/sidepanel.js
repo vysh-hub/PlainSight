@@ -6,14 +6,51 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 const btn = document.getElementById("readText");
 const output = document.getElementById("output");
 
-// ================= MAIN BUTTON =================
-btn.addEventListener("click", async () => {
-  output.innerHTML = "<li>Scanning page for policy links...</li>";
+// ================= AUTO SCAN ENTRY ================= 
+document.addEventListener("DOMContentLoaded", () => {
+  autoScan();
+});
 
+// ================= MANUAL FALLBACK =================
+btn.addEventListener("click", () => {
+  autoScan(true);
+});
+
+// ================= AUTO SCAN =================
+async function autoScan(isManual = false) {
+  try {
+    output.innerHTML = `<li>${isManual ? "Re-scanning" : "Auto-scanning"} for policy links...</li>`;
+
+    const links = await scanForPolicyLinks();
+
+    if (!links.length) return;
+
+    const priorityOrder = ["privacy", "cookie", "terms", "policy", "legal"];
+
+    const selected =
+      links.find(l =>
+        priorityOrder.some(p => l.text.toLowerCase().includes(p))
+      ) || links[0];
+
+    output.innerHTML = `<li>Using policy: <b>${selected.text}</b></li>`;
+
+    handlePolicyLink(selected.href);
+
+  } catch (err) {
+    output.innerHTML = `<li>Scan failed: ${err.message}</li>`;
+  }
+}
+
+async function scanForPolicyLinks() {
   const [tab] = await chrome.tabs.query({
     active: true,
     currentWindow: true
   });
+
+  if (!tab?.url || !tab.url.startsWith("http")) {
+    output.innerHTML = "<li>Cannot scan this page (restricted URL)</li>";
+    return [];
+  }
 
   const [{ result }] = await chrome.scripting.executeScript({
     target: { tabId: tab.id },
@@ -23,35 +60,15 @@ btn.addEventListener("click", async () => {
           text: a.innerText.trim(),
           href: a.href
         }))
-        .filter(link =>
-          link.text &&
-          /privacy|cookie|terms|policy|legal/i.test(link.text)
+        .filter(l =>
+          l.text &&
+          /privacy|cookie|terms|policy|legal/i.test(l.text)
         );
     }
   });
 
-  output.innerHTML = "";
-
-  if (!result || result.length === 0) {
-    output.innerHTML = "<li>No policy links found</li>";
-    return;
-  }
-
-  result.forEach(link => {
-    const li = document.createElement("li");
-    const a = document.createElement("a");
-
-    a.href = "#";
-    a.textContent = link.text;
-
-    a.addEventListener("click", () => {
-      handlePolicyLink(link.href);
-    });
-
-    li.appendChild(a);
-    output.appendChild(li);
-  });
-});
+  return result || [];
+}
 
 // ================= CORE ROUTER =================
 async function handlePolicyLink(url) {
@@ -105,7 +122,7 @@ function getBrowserCookies(url) {
 function fetchHTML(url, domCookies, browserCookies, cmpInfo) {
   chrome.runtime.sendMessage(
     { type: "FETCH_POLICY", url },
-    (response) => {
+    response => {
       if (!response || response.error) {
         output.innerHTML = "<li>Error loading policy</li>";
         return;
@@ -124,7 +141,7 @@ function fetchHTML(url, domCookies, browserCookies, cmpInfo) {
 function fetchPDF(url, domCookies, browserCookies, cmpInfo) {
   chrome.runtime.sendMessage(
     { type: "FETCH_PDF", url },
-    async (response) => {
+    async response => {
       if (!response || response.error) {
         output.innerHTML = "<li>Error loading PDF</li>";
         return;
@@ -150,7 +167,7 @@ function fetchPDF(url, domCookies, browserCookies, cmpInfo) {
   );
 }
 
-// ================= CMP DETECTION (SYNC & SAFE) =================
+// ================= CMP DETECTION =================
 function detectCMP() {
   return {
     detected: {
@@ -180,7 +197,6 @@ async function getCMPInfo(tabId) {
 
   return result;
 }
-
 async function runPolicySummariser(policyJSON) {
   const res = await fetch("http://localhost:8000/policy/analyze", {
     method: "POST",
@@ -259,6 +275,51 @@ function buildCookieAnalyzerPayload(url, browserCookies, cmpInfo) {
   };
 }
 
+function renderPolicyOutput(policyOut) {
+  if (!policyOut) {
+    return "<p>No policy analysis available.</p>";
+  }
+
+  if (policyOut.error) {
+    return `<p style="color:red;">Error: ${policyOut.error}</p>`;
+  }
+
+  const {
+    summary_simple,
+    key_takeaways = [],
+    policy_risk_score,
+    risk_level
+  } = policyOut;
+
+  const riskColor =
+    risk_level === "High" ? "#d32f2f" :
+    risk_level === "Medium" ? "#f9a825" :
+    "#2e7d32";
+
+  return `
+    <div class="policy-box">
+
+      <h4>Summary</h4>
+      <p>${summary_simple || "No summary available."}</p>
+
+      <h4>Key Takeaways</h4>
+      <ul>
+        ${key_takeaways.map(k => `<li>${k}</li>`).join("")}
+      </ul>
+
+      <h4>Risk Assessment</h4>
+      <p>
+        <strong>Risk Level:</strong>
+        <span style="color:${riskColor}; font-weight:600;">
+          ${risk_level || "Unknown"}
+        </span>
+      </p>
+      <p><strong>Risk Score:</strong> ${policy_risk_score ?? "N/A"} / 10</p>
+
+    </div>
+  `;
+}
+
 // ================= BUILD JSON + RENDER =================
 async function buildAndRenderJSON(url, text, domCookies, browserCookies, cmpInfo) {
 
@@ -287,11 +348,13 @@ const cookieAnalyzerPayload = buildCookieAnalyzerPayload(
 
   // Render for testing
   output.innerHTML = `
-    <h3>Policy OUTPUT (from Summariser)</h3>
-    <pre>${JSON.stringify(policyOut, null, 2).slice(0, 6000)}</pre>
+  <h3>Policy Analysis</h3>
+  ${renderPolicyOutput(policyOut)}
 
-    <h3>Cookies JSON (for Analyzer)</h3>
+  <details style="margin-top:12px;">
+    <summary><b>Cookies JSON (for Analyzer)</b></summary>
     <pre>${JSON.stringify(cookiesJSON, null, 2).slice(0, 3000)}</pre>
+  </details>
   `;
 }
 
